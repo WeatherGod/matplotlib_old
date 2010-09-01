@@ -1783,6 +1783,106 @@ def is_math_text(s):
 
     return even_dollars
 
+class ThinWrap(object) :
+    """
+    The ThinWrap class is a way to produce modified interfaces
+    to an object while still maintaining the original object.
+
+    An example use case is the ReMap class in colors.py.  The ReMap
+    class takes a colormap object and intercepts its __call__() function.
+    This allows for a remapping function to modify the returned rgba values.
+    Meanwhile, any access to the attributes and functions of the original
+    colormap object through the wrapper will just get passed onto the
+    original colormap.
+
+    So long as the code honors duck-typing, you can pass this ThinWrapper
+    class down into the code and it will be none the wiser.
+    """
+    def __init__(self, origobj) :
+        """
+        Create a thin wrapper around `origobj`.
+        `origobj` must be a new style python class object (or must have
+        __getattribute__ defined.
+        """
+        # We have to use the baseclass's get and set to avoid recursion.
+        object.__setattr__(self, '_origobj', origobj)
+
+    def __getattr__(self, attr) :
+        """
+        Any attribute request/function request that can't be found
+        by normal means will come to this function.
+        Those requests will be passed along to the _origobj.
+        """
+        return object.__getattribute__(self, '_origobj').__getattribute__(attr)
+
+    
+    def __getattribute__(self, attr) :
+        """
+        Other methods of accessing an attribute uses __getattribute__.
+        In this case, we will attempt to access the attribute in this
+        object.  Upon failing, we then fall back to accessing the attribute
+        in the _origobj.
+        This is necessary for subclassed objects that have their own functions
+        that need to be used, I believe.
+        """
+        try :
+            return object.__getattribute__(self, attr)
+        except AttributeError :
+            return object.__getattribute__(self, '_origobj').__getattribute__(attr)
+        
+
+    def __setattr__(self, attr, value) :
+        """
+        Any request for setting an attribute will first be checked
+        to see if the attribute already exist in the dictionary.
+        If it isn't in there, then it will pass along the set
+        request to the _origobj.
+
+        To help understand the idea, consider the following:
+
+        >>> class Foo(object) :
+        >>>     def __init__(self, x, y) :
+        >>>         self.x = x
+        >>>         self.y = y
+        >>>
+        >>> a = Foo(22, 'bar')
+        >>> b = ThinWrap(a)
+        >>> print "a attribs - x: %d    y: %s" % (a.x, a.y)
+        'a attribs - x: 22    y: bar'
+        >>> print "b attribs - x: %d    y: %s" % (b.x, b.y)
+        'b attribs - x: 22    y: bar'
+        >>>
+        >>> b.x = 42
+        >>> print "a attribs - x: %d    y: %s" % (a.x, a.y)
+        'a attribs - x: 42    y: bar'
+        >>> print "b attribs - x: %d    y: %s" % (b.x, b.y)
+        'b attribs - x: 22    y: bar'
+        >>>
+        >>> a.y = 'foo'
+        >>> print "a attribs - x: %d    y: %s" % (a.x, a.y)
+        'a attribs - x: 22    y: foo'
+        >>> print "b attribs - x: %d    y: %s" % (b.x, b.y)
+        'b attribs - x: 22    y: foo'
+
+        Subclassed objects can have their own attributes, but must create
+        them through the __dict__.  Once those attributes that are tied
+        to the subclassed object exist in the __dict__, they can be accessed
+        in the typical manner.
+
+        >>> self.__dict__['foo'] = 'bar'
+        >>> print self.foo
+        'bar'
+
+        Unfortunately, there isn't any special handling of situations
+        where an attribute exist in both the ThinWrap object and the
+        original object. The ThinWrap object's attributes will be used.
+        """
+        if attr in object.__getattribute__(self, '__dict__') :
+            object.__setattr__(self, attr, value)
+        else :
+            object.__getattribute__(self, '_origobj').__setattr__(attr, value)
+
+
 
 if __name__=='__main__':
     assert( allequal([1,1,1]) )
