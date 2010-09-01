@@ -1788,7 +1788,7 @@ class ThinWrap(object) :
     The ThinWrap class is a way to produce modified interfaces
     to an object while still maintaining the original object.
 
-    An example use case is the ReMap class in colors.py.  The ReMap
+    An example use case is the ReMap class in remap.py.  The ReMap
     class takes a colormap object and intercepts its __call__() function.
     This allows for a remapping function to modify the returned rgba values.
     Meanwhile, any access to the attributes and functions of the original

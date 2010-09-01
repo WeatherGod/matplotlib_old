@@ -120,16 +120,19 @@ def get_cmap(name=None, lut=None):
     if name is None:
         name = mpl.rcParams['image.cmap']
 
-    if isinstance(name, colors.Colormap):
+    
+    if cbook.is_string_like(name) :
+        if name in cmap_d:
+            if lut is None:
+                return cmap_d[name]
+            elif name in datad:
+                return colors.LinearSegmentedColormap(name,  datad[name], lut)
+        
+        raise ValueError("Colormap %s is not recognized" % name)
+    else :
+        # Assume that the user knows what it wants and that the object
+        # works as a colormap.
         return name
-
-    if name in cmap_d:
-        if lut is None:
-            return cmap_d[name]
-        elif name in datad:
-            return colors.LinearSegmentedColormap(name,  datad[name], lut)
-        else:
-            raise ValueError("Colormap %s is not recognized" % name)
 
 class ScalarMappable:
     """

@@ -462,7 +462,7 @@ def makeMappingArray(N, data, gamma=1.0):
     return lut
 
 
-class Colormap:
+class Colormap(object):
     """Base class for all scalar to rgb mappings
 
         Important methods:
