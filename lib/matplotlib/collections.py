@@ -1034,13 +1034,14 @@ class PatchCollection(Collection):
 
         if match_original:
             def determine_facecolor(patch):
-                if patch.fill:
+                if patch.get_fill():
                     return patch.get_facecolor()
                 return [0, 0, 0, 0]
 
             facecolors   = [determine_facecolor(p) for p in patches]
             edgecolors   = [p.get_edgecolor() for p in patches]
             linewidths   = [p.get_linewidth() for p in patches]
+            linestyles   = [p.get_linestyle() for p in patches]
             antialiaseds = [p.get_antialiased() for p in patches]
 
             Collection.__init__(
@@ -1048,7 +1049,7 @@ class PatchCollection(Collection):
                 edgecolors=edgecolors,
                 facecolors=facecolors,
                 linewidths=linewidths,
-                linestyles='solid',
+                linestyles=linestyles,
                 antialiaseds = antialiaseds)
         else:
             Collection.__init__(self, **kwargs)
