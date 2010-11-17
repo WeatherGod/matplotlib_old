@@ -74,22 +74,32 @@ class Axis(maxis.XAxis):
 
         maxis.XAxis.__init__(self, axes, *args, **kwargs)
 
+        self._pane_alpha = self._AXINFO[self.adir]['color'][-1]
+        self._pane_facecolor = self._AXINFO[self.adir]['color']
+        self._pane_edgecolor = self._AXINFO[self.adir]['color']
+        self._axis_label_pad = 1.3
+        self._gridlines_color = (0.9, 0.9, 0.9, 1.0)
+        self._tick_innerscale = 0.1
+        self._tick_outerscale = 0.2
+        self._tick_label_pad = 0.6
+        self._axis_width = 0.75
+        self._axis_color = (0, 0, 0, 1)
+
         self.set_rotate_label(kwargs.get('rotate_label', None))
 
 
     def init3d(self):
         self.line = mlines.Line2D(xdata=(0, 0), ydata=(0, 0),
-                                 linewidth=0.75,
-                                 color=(0, 0, 0, 1),
+                                 linewidth=self._axis_width,
+                                 color=self._axis_color,
                                  antialiased=True,
                            )
 
         # Store dummy data in Polygon object
         self.pane = mpatches.Polygon(np.array([[0,0], [0,1], [1,0], [0,0]]),
-                                    alpha=0.8,
-                                    facecolor=(1,1,1,0),
-                                    edgecolor=(1,1,1,0))
-        self.set_pane_color(self._AXINFO[self.adir]['color'])
+                                    alpha=self._pane_alpha,
+                                    facecolor=self._pane_facecolor,
+                                    edgecolor=self._pane_edgecolor)
 
         self.axes._set_artist_props(self.line)
         self.axes._set_artist_props(self.pane)
@@ -122,6 +132,9 @@ class Axis(maxis.XAxis):
 
     def set_pane_color(self, color):
         '''Set pane color to a RGBA tuple'''
+        self._pane_facecolor = color
+        self._pane_edgecolor = color
+        self._pane_alpha = color[-1]
         self.pane.set_edgecolor(color)
         self.pane.set_facecolor(color)
         self.pane.set_alpha(color[-1])
@@ -229,7 +242,7 @@ class Axis(maxis.XAxis):
 
         lxyz = 0.5*(edgep1 + edgep2)
 
-        labeldeltas = 1.3 * deltas
+        labeldeltas = self._axis_label_pad * deltas
         axmask = [True, True, True]
         axmask[index] = False
         lxyz = move_from_center(lxyz, centers, labeldeltas, axmask)
@@ -261,7 +274,7 @@ class Axis(maxis.XAxis):
             lines = zip(xyz1, xyz0, xyz2)
             if self.axes._draw_grid:
                 self.gridlines.set_segments(lines)
-                self.gridlines.set_color([(0.9,0.9,0.9,1)] * len(lines))
+                self.gridlines.set_color([self._gridlines_color] * len(lines))
                 self.gridlines.draw(renderer, project=True)
 
         # Draw ticks
@@ -279,15 +292,15 @@ class Axis(maxis.XAxis):
             # Get tick line positions
             pos = copy.copy(edgep1)
             pos[index] = loc
-            pos[tickdir] = edgep1[tickdir] + 0.1 * ticksign * tickdelta
+            pos[tickdir] = edgep1[tickdir] + self._tick_innerscale * ticksign * tickdelta
             x1, y1, z1 = proj3d.proj_transform(pos[0], pos[1], pos[2], \
                     renderer.M)
-            pos[tickdir] = edgep1[tickdir] - 0.2 * ticksign * tickdelta
+            pos[tickdir] = edgep1[tickdir] - self._tick_outerscale * ticksign * tickdelta
             x2, y2, z2 = proj3d.proj_transform(pos[0], pos[1], pos[2], \
                     renderer.M)
 
             # Get position of label
-            labeldeltas = [0.6 * x for x in deltas]
+            labeldeltas = [self._tick_label_pad * x for x in deltas]
             axmask = [True, True, True]
             axmask[index] = False
             pos[tickdir] = edgep1[tickdir]
