@@ -800,18 +800,22 @@ class Axes3D(Axes):
             normals.append(np.cross(v1, v2))
         return normals
 
+    def _get_shades(self, normals):
+        '''
+        Find the normalized vectors of the normals and dot them with
+        the vector [-1,-1,0.5] to get the proper shadings.
+        '''
+        normals = np.asarray(normals)
+        return np.dot(normals/np.sqrt((normals**2).sum(axis=1))[:,np.newaxis],
+               np.array([[-1],[-1],[0.5]])).squeeze()
+
     def _shade_colors(self, color, normals):
         '''
         Shade *color* using normal vectors given by *normals*.
         *color* can also be an array of the same length as *normals*.
         '''
 
-        shade = []
-        for n in normals:
-            n = n / proj3d.mod(n)
-            shade.append(np.dot(n, [-1, -1, 0.5]))
-
-        shade = np.array(shade)
+        shade = self._get_shades(normals)
         mask = ~np.isnan(shade)
 
         if len(shade[mask]) > 0:
@@ -819,11 +823,10 @@ class Axes3D(Axes):
             if art3d.iscolor(color):
                 color = color.copy()
                 color[3] = 1
-                colors = [color * (0.5 + norm(v) * 0.5) for v in shade]
+                colors = np.outer(0.5 + norm(shade) * 0.5, color)
             else:
-                colors = [np.array(colorConverter.to_rgba(c)) * \
-                            (0.5 + norm(v) * 0.5) \
-                            for c, v in zip(color, shade)]
+                colors = colorConverter.to_rgba_array(color) * \
+                            (0.5 + 0.5 * norm(shade)[:, np.newaxis])
         else:
             colors = color.copy()
 
