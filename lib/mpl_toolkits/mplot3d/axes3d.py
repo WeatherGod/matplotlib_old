@@ -722,10 +722,9 @@ class Axes3D(Axes):
         normals = []
         #colset contains the data for coloring: either average z or the facecolor
         colset = []
-        for rs in np.arange(0, rows-1, rstride):
-            for cs in np.arange(0, cols-1, cstride):
+        for rs in xrange(0, rows-1, rstride):
+            for cs in xrange(0, cols-1, cstride):  
                 ps = []
-                corners = []
                 for a, ta in [(X, tX), (Y, tY), (Z, tZ)]:
                     ztop = a[rs][cs:min(cols, cs+cstride+1)]
                     zleft = ta[min(cols-1, cs+cstride)][rs:min(rows, rs+rstride+1)]
@@ -733,7 +732,6 @@ class Axes3D(Axes):
                     zbase = zbase[::-1]
                     zright = ta[cs][rs:min(rows, rs+rstride+1):]
                     zright = zright[::-1]
-                    corners.append([ztop[0], ztop[-1], zbase[0], zbase[-1]])
                     z = np.concatenate((ztop, zleft, zbase, zright))
                     ps.append(z)
 
