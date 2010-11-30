@@ -719,7 +719,16 @@ class Axes3D(Axes):
             fcolors = self._shade_colors_lightsource(Z, cmap, lightsource)
 
         polys = []
-        normals = []
+        # Only need these vectors to shade if there is no cmap
+        if cmap is None and shade :
+            totpts = int(np.ceil(float(rows - 1) / rstride) *
+                         np.ceil(float(cols - 1) / cstride))
+            v1 = np.empty((totpts, 3))
+            v2 = np.empty((totpts, 3))
+            # This indexes the vertex points
+            which_pt = 0
+
+
         #colset contains the data for coloring: either average z or the facecolor
         colset = []
         for rs in xrange(0, rows-1, rstride):
@@ -756,9 +765,13 @@ class Axes3D(Axes):
                 # Only need vectors to shade if no cmap
                 if cmap is None and shade:
                     i1, i2, i3 = 0, int(len(ps2)/3), int(2*len(ps2)/3)
-                    v1 = np.array(ps2[i1]) - np.array(ps2[i2])
-                    v2 = np.array(ps2[i2]) - np.array(ps2[i3])
-                    normals.append(np.cross(v1, v2))
+                    v1[which_pt] = np.array(ps2[i1]) - np.array(ps2[i2])
+                    v2[which_pt] = np.array(ps2[i2]) - np.array(ps2[i3])
+                    which_pt += 1
+        if cmap is None and shade:
+            normals = np.cross(v1, v2)
+        else :
+            normals = []
 
         polyc = art3d.Poly3DCollection(polys, *args, **kwargs)
 
