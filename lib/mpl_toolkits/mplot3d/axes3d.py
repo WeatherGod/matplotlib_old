@@ -696,7 +696,6 @@ class Axes3D(Axes):
         had_data = self.has_data()
 
         rows, cols = Z.shape
-        tX, tY, tZ = np.transpose(X), np.transpose(Y), np.transpose(Z)
         rstride = kwargs.pop('rstride', 10)
         cstride = kwargs.pop('cstride', 10)
 
@@ -734,13 +733,12 @@ class Axes3D(Axes):
         for rs in xrange(0, rows-1, rstride):
             for cs in xrange(0, cols-1, cstride):  
                 ps = []
-                for a, ta in [(X, tX), (Y, tY), (Z, tZ)]:
-                    ztop = a[rs][cs:min(cols, cs+cstride+1)]
-                    zleft = ta[min(cols-1, cs+cstride)][rs:min(rows, rs+rstride+1)]
-                    zbase = a[min(rows-1, rs+rstride)][cs:min(cols, cs+cstride+1):]
-                    zbase = zbase[::-1]
-                    zright = ta[cs][rs:min(rows, rs+rstride+1):]
-                    zright = zright[::-1]
+                for a in (X, Y, Z) :
+                    ztop = a[rs,cs:min(cols, cs+cstride+1)]
+                    zleft = a[rs+1:min(rows, rs+rstride+1),
+                              min(cols-1, cs+cstride)]
+                    zbase = a[min(rows-1, rs+rstride), cs:min(cols, cs+cstride+1):][::-1]
+                    zright = a[rs:min(rows-1, rs+rstride):, cs][::-1]
                     z = np.concatenate((ztop, zleft, zbase, zright))
                     ps.append(z)
 
