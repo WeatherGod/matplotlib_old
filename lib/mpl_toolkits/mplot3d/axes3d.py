@@ -806,12 +806,8 @@ class Axes3D(Axes):
         *color* can also be an array of the same length as *normals*.
         '''
 
-        shade = []
-        for n in normals:
-            n = n / proj3d.mod(n)
-            shade.append(np.dot(n, [-1, -1, 0.5]))
-
-        shade = np.array(shade)
+        shade = np.array([np.dot(n / proj3d.mod(n), [-1, -1, 0.5])
+                          for n in normals])
         mask = ~np.isnan(shade)
 
         if len(shade[mask]) > 0:
@@ -819,11 +815,10 @@ class Axes3D(Axes):
             if art3d.iscolor(color):
                 color = color.copy()
                 color[3] = 1
-                colors = [color * (0.5 + norm(v) * 0.5) for v in shade]
+                colors = np.outer(0.5 + norm(shade) * 0.5, color)
             else:
-                colors = [np.array(colorConverter.to_rgba(c)) * \
-                            (0.5 + norm(v) * 0.5) \
-                            for c, v in zip(color, shade)]
+                colors = colorConverter.to_rgba_array(color) * \
+                            (0.5 + 0.5 * norm(shade)[:, np.newaxis])
         else:
             colors = color.copy()
 
