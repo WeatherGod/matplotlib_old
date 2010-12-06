@@ -96,8 +96,10 @@ class Axis(maxis.XAxis):
         self.gridlines = art3d.Line3DCollection([], )
         self.axes._set_artist_props(self.gridlines)
         self.axes._set_artist_props(self.label)
+        self.axes._set_artist_props(self.offsetText)
         # Need to be able to place the label at the correct location
         self.label._transform = self.axes.transData
+        self.offsetText._transform = self.axes.transData
 
     def get_tick_positions(self):
         majorLocs = self.major.locator()
@@ -294,11 +296,20 @@ class Axis(maxis.XAxis):
             pos = move_from_center(pos, centers, labeldeltas, axmask)
             lx, ly, lz = proj3d.proj_transform(pos[0], pos[1], pos[2], \
                     renderer.M)
-
             tick_update_position(tick, (x1, x2), (y1, y2), (lx, ly))
             tick.set_label1(label)
             tick.set_label2(label)
             tick.draw(renderer)
+
+        offsetdeltas = np.zeros_like(deltas)
+        offsetdeltas[tickdir] = 1.6 * deltas[tickdir]
+        pos = copy.copy(edgep1)
+        pos = move_from_center(pos, centers, offsetdeltas, axmask)
+        olx, oly, olz = proj3d.proj_transform(pos[0], pos[1], pos[2], renderer.M)
+        self.offsetText.set_position( (olx, oly) )
+        self.offsetText.set_text( self.major.formatter.get_offset() )
+        self.offsetText.draw(renderer)
+
 
         renderer.close_group('axis3d')
 
